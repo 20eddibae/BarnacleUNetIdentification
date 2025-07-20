@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-"""
-Verify that the barnacle segmentation setup is complete and ready for training.
-"""
 
 import os
 import cv2
@@ -9,12 +6,11 @@ import numpy as np
 from glob import glob
 
 def verify_setup():
-    """Verify the complete setup for barnacle segmentation."""
     
-    print("🔍 Verifying Barnacle Segmentation Setup\n")
+    print("Verifying Barnacle Segmentation Setup\n")
     
     # Check directory structure
-    print("📁 Directory Structure:")
+    print("Directory Structure:")
     required_dirs = [
         'data/imgs/train',
         'data/imgs/val', 
@@ -38,7 +34,7 @@ def verify_setup():
             print(f"  ❌ {dir_path} - MISSING")
     
     # Check data files
-    print("\n📊 Data Files:")
+    print("\nData Files:")
     
     # Original images and masks
     train_imgs = len(glob('data/imgs/train/*.png'))
@@ -70,7 +66,7 @@ def verify_setup():
     print(f"  Validation tile masks: {val_tile_masks}")
     
     # Check mask quality
-    print("\n🔍 Mask Quality Check:")
+    print("\nMask Quality Check:")
     try:
         mask_path = 'data/masks/train/mask1.png'
         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
@@ -88,15 +84,15 @@ def verify_setup():
         print(f"  Barnacle ratio: {barnacle_ratio:.3f}")
         
         if len(unique_values) == 2 and 0 in unique_values and 255 in unique_values:
-            print("  ✅ Mask is properly binarized")
+            print("  Mask is properly binarized")
         else:
-            print("  ⚠️  Mask may need binarization")
+            print("  Mask may need binarization")
             
     except Exception as e:
         print(f"  ❌ Error checking mask: {e}")
     
     # Check tile quality
-    print("\n🔍 Tile Quality Check:")
+    print("\nTile Quality Check:")
     try:
         tile_path = 'data/tiles/train/imgs/img1_tile_0000.png'
         tile_mask_path = 'data/tiles/train/masks/img1_tile_0000.png'
@@ -110,17 +106,17 @@ def verify_setup():
             print(f"  Tile mask unique values: {np.unique(tile_mask)}")
             
             if tile.shape[:2] == tile_mask.shape:
-                print("  ✅ Tile and mask dimensions match")
+                print("  Tile and mask dimensions match")
             else:
-                print("  ❌ Tile and mask dimensions mismatch")
+                print("  Tile and mask dimensions mismatch")
         else:
-            print("  ⚠️  Sample tiles not found")
+            print("  Sample tiles not found")
             
     except Exception as e:
         print(f"  ❌ Error checking tiles: {e}")
     
     # Check scripts
-    print("\n📜 Scripts:")
+    print("\nScripts:")
     scripts = [
         'scripts/extract_patches.py',
         'scripts/create_tiles.py',
@@ -130,20 +126,20 @@ def verify_setup():
     
     for script in scripts:
         if os.path.exists(script):
-            print(f"  ✅ {script}")
+            print(f"  {script}")
         else:
-            print(f"  ❌ {script} - MISSING")
+            print(f"  {script} - MISSING")
     
     # Check notebook
-    print("\n📓 Notebook:")
+    print("\nNotebook:")
     notebook_path = 'notebooks/barnacle_unet.ipynb'
     if os.path.exists(notebook_path):
-        print(f"  ✅ {notebook_path}")
+        print(f"  {notebook_path}")
     else:
-        print(f"  ❌ {notebook_path} - MISSING")
+        print(f"  {notebook_path} - MISSING")
     
     # Summary
-    print("\n📈 Summary:")
+    print("\nSummary:")
     total_training_data = positive_patches + train_tiles
     print(f"  Total training samples: {total_training_data}")
     print(f"  Individual barnacle patches: {positive_patches}")
@@ -151,11 +147,11 @@ def verify_setup():
     print(f"  Validation samples: {val_tiles}")
     
     if total_training_data > 1000:
-        print("  ✅ Sufficient training data available")
+        print("  Sufficient training data available")
     else:
-        print("  ⚠️  Limited training data - consider adding more annotations")
+        print("  Limited training data - consider adding more annotations")
     
-    print("\n🎯 Ready for Training!")
+    print("\nReady for Training!")
     print("  Run: jupyter notebook notebooks/barnacle_unet.ipynb")
 
 if __name__ == "__main__":

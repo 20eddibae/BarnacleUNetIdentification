@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-Automated patch extraction for barnacle segmentation.
-Extracts positive patches (barnacles) and negative patches (background) from training data.
-"""
 
 import os
 import cv2
@@ -11,14 +7,6 @@ from glob import glob
 import argparse
 
 def extract_patches(data_dir='data', min_area=20, patch_size=64):
-    """
-    Extract positive and negative patches from training data.
-    
-    Args:
-        data_dir: Directory containing imgs/ and masks/ subdirectories
-        min_area: Minimum area for a connected component to be considered a barnacle
-        patch_size: Size of negative patches to extract
-    """
     
     # Create output directories
     os.makedirs(f'{data_dir}/patches/positives', exist_ok=True)

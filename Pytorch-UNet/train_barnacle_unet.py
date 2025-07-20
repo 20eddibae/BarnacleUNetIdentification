@@ -22,7 +22,7 @@ sys.path.append('unet')
 from unet_model import UNet
 
 def main():
-    print("🚀 Starting Barnacle Segmentation Training")
+    print("Starting Barnacle Segmentation Training")
     print("=" * 50)
     
     # Check device
@@ -30,7 +30,7 @@ def main():
     print(f"Using device: {device}")
     
     # Check data organization
-    print("\n📊 Data Overview:")
+    print("\nData Overview:")
     train_tiles = len(glob('data/tiles/train/imgs/*.png'))
     val_tiles = len(glob('data/tiles/val/imgs/*.png'))
     positive_patches = len(glob('data/patches/positives/*.png'))
@@ -83,7 +83,7 @@ def main():
     ])
     
     # Create datasets
-    print("\n📁 Loading datasets...")
+    print("\nLoading datasets...")
     train_dataset = BarnacleDataset('data/tiles/train', transform=train_transform)
     val_dataset = BarnacleDataset('data/tiles/val')
     
@@ -95,7 +95,7 @@ def main():
     print(f"Validation samples: {len(val_dataset)}")
     
     # Initialize model
-    print("\n🤖 Initializing U-Net model...")
+    print("\nInitializing U-Net model...")
     model = UNet(n_channels=3, n_classes=1)
     model = model.to(device)
     
@@ -156,7 +156,7 @@ def main():
         return total_loss / len(loader), total_dice / len(loader)
     
     # Training loop
-    print("\n🎯 Starting training...")
+    print("\nStarting training...")
     num_epochs = 20  # Reduced for faster training
     train_losses = []
     val_losses = []
@@ -187,16 +187,16 @@ def main():
         if val_dice > best_val_dice:
             best_val_dice = val_dice
             torch.save(model.state_dict(), 'models/best_barnacle_unet.pth')
-            print(f"🎉 New best model saved! Dice: {val_dice:.4f}")
+            print(f"New best model saved! Dice: {val_dice:.4f}")
         
         # Early stopping
         if epoch > 5 and val_dice < 0.1:
-            print("⚠️ Early stopping due to poor performance")
+            print("Early stopping due to poor performance")
             break
     
     # Training summary
     print("\n" + "=" * 50)
-    print("🎯 Training Complete!")
+    print("Training Complete!")
     print(f"Best validation Dice score: {best_val_dice:.4f}")
     print(f"Model saved to: models/best_barnacle_unet.pth")
     

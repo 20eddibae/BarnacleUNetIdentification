@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-Create tiled patches from full images for training.
-This approach is better for dense barnacle datasets where background is limited.
-"""
 
 import os
 import cv2
@@ -11,15 +7,6 @@ from glob import glob
 import random
 
 def create_tiles(data_dir='data', tile_size=256, overlap=64, val_split=0.2):
-    """
-    Create overlapping tiles from full images and masks.
-    
-    Args:
-        data_dir: Directory containing imgs/ and masks/ subdirectories
-        tile_size: Size of tiles to create
-        overlap: Overlap between tiles
-        val_split: Fraction of tiles to use for validation
-    """
     
     # Create output directories
     os.makedirs(f'{data_dir}/tiles/train/imgs', exist_ok=True)

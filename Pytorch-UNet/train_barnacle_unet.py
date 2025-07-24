@@ -21,6 +21,39 @@ import sys
 sys.path.append('unet')
 from unet_model import UNet
 
+class BarnacleDataset(Dataset):
+    def __init__(self, data_dir, transform=None):
+        self.data_dir = data_dir
+        self.transform = transform
+        self.img_dir = os.path.join(data_dir, 'imgs')
+        self.mask_dir = os.path.join(data_dir, 'masks')
+        self.img_files = sorted(glob(os.path.join(self.img_dir, '*.png')))
+        self.pairs = []
+        for img_path in self.img_files:
+            base = os.path.basename(img_path)
+            mask_path = os.path.join(self.mask_dir, base)
+            if os.path.exists(mask_path):
+                self.pairs.append((img_path, mask_path))
+            else:
+                print(f"Warning: No mask for {base}")
+
+    def __len__(self):
+        return len(self.pairs)
+
+    def __getitem__(self, idx):
+        img_path, mask_path = self.pairs[idx]
+        img = cv2.imread(img_path)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+        _, mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
+        mask = mask / 255.0
+        img = torch.from_numpy(img.transpose(2, 0, 1)).float() / 255.0
+        mask = torch.from_numpy(mask).unsqueeze(0).float()
+        if self.transform:
+            img = self.transform(img)
+            mask = self.transform(mask)
+        return img, mask
+
 def main():
     print("Starting Barnacle Segmentation Training")
     print("=" * 50)
@@ -39,41 +72,6 @@ def main():
     print(f"Validation tiles: {val_tiles}")
     print(f"Individual barnacle patches: {positive_patches}")
     
-    # Dataset class
-    class BarnacleDataset(Dataset):
-        def __init__(self, data_dir, transform=None):
-            self.data_dir = data_dir
-            self.transform = transform
-            
-            # Get all image files
-            self.img_files = sorted(glob(os.path.join(data_dir, 'imgs', '*.png')))
-            
-        def __len__(self):
-            return len(self.img_files)
-        
-        def __getitem__(self, idx):
-            img_path = self.img_files[idx]
-            mask_path = img_path.replace('imgs', 'masks')
-            
-            # Load image and mask
-            img = cv2.imread(img_path)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-            
-            # Binarize mask
-            _, mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
-            mask = mask / 255.0  # Normalize to [0, 1]
-            
-            # Convert to tensors
-            img = torch.from_numpy(img.transpose(2, 0, 1)).float() / 255.0
-            mask = torch.from_numpy(mask).unsqueeze(0).float()
-            
-            if self.transform:
-                img = self.transform(img)
-                mask = self.transform(mask)
-            
-            return img, mask
-    
     # Data augmentation
     train_transform = transforms.Compose([
         transforms.RandomHorizontalFlip(p=0.5),
@@ -88,8 +86,8 @@ def main():
     val_dataset = BarnacleDataset('data/tiles/val')
     
     # Create dataloaders
-    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, num_workers=2)
-    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, num_workers=2)
+    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, num_workers=0)
+    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, num_workers=0)
     
     print(f"Training samples: {len(train_dataset)}")
     print(f"Validation samples: {len(val_dataset)}")

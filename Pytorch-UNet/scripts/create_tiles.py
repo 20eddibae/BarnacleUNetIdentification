@@ -47,32 +47,41 @@ def process_split(data_dir, split, tile_size, overlap):
         
         # Load image and mask
         img = cv2.imread(img_path)
-        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-        
-        if img is None or mask is None:
+        # Load mask in color
+        mask_color = cv2.imread(mask_path)
+        if img is None or mask_color is None:
             print(f"Warning: Could not load {img_path} or {mask_path}")
             continue
-            
-        # Binarize mask
-        _, bin_mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
-        
+
+        # Detect exact blue as foreground
+        bin_mask = cv2.inRange(mask_color, np.array([191, 57, 39]), np.array([191, 57, 39]))
+
         h, w = img.shape[:2]
         stride = tile_size - overlap
-        
+
         tiles_count = 0
-        
+        debug_tiles_saved = 0
+
         # Create overlapping tiles
         for y in range(0, h - tile_size + 1, stride):
             for x in range(0, w - tile_size + 1, stride):
                 # Extract tile
                 img_tile = img[y:y+tile_size, x:x+tile_size]
                 mask_tile = bin_mask[y:y+tile_size, x:x+tile_size]
-                
+
+                # Debug output for the first 5 tiles
+                if debug_tiles_saved < 5:
+                    print(f"DEBUG: {img_path} tile {tiles_count} unique mask values: {np.unique(mask_tile)}, sum: {mask_tile.sum()}")
+                    base_name = os.path.splitext(os.path.basename(img_path))[0]
+                    tile_name = f"{base_name}_tile_{tiles_count:04d}_debug"
+                    cv2.imwrite(f'{data_dir}/tiles/{split}/imgs/{tile_name}.png', img_tile)
+                    cv2.imwrite(f'{data_dir}/tiles/{split}/masks/{tile_name}.png', mask_tile)
+                    debug_tiles_saved += 1
+
                 # Only save tiles that have some barnacles (positive examples)
                 if mask_tile.sum() > 0:
                     base_name = os.path.splitext(os.path.basename(img_path))[0]
                     tile_name = f"{base_name}_tile_{tiles_count:04d}"
-                    
                     cv2.imwrite(f'{data_dir}/tiles/{split}/imgs/{tile_name}.png', img_tile)
                     cv2.imwrite(f'{data_dir}/tiles/{split}/masks/{tile_name}.png', mask_tile)
                     tiles_count += 1

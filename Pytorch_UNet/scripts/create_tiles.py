@@ -5,14 +5,17 @@ import cv2
 import numpy as np
 from glob import glob
 import random
+import shutil
 
-def create_tiles(data_dir='data', tile_size=256, overlap=64, val_split=0.2):
+def create_tiles(data_dir='data', tile_size=128, overlap=32, val_split=0.2):
     
-    # Create output directories
-    os.makedirs(f'{data_dir}/tiles/train/imgs', exist_ok=True)
-    os.makedirs(f'{data_dir}/tiles/train/masks', exist_ok=True)
-    os.makedirs(f'{data_dir}/tiles/val/imgs', exist_ok=True)
-    os.makedirs(f'{data_dir}/tiles/val/masks', exist_ok=True)
+    # Delete previous tiles
+    for split in ['train', 'val']:
+        for sub in ['imgs', 'masks']:
+            dir_path = f'{data_dir}/tiles/{split}/{sub}'
+            if os.path.exists(dir_path):
+                shutil.rmtree(dir_path)
+            os.makedirs(dir_path, exist_ok=True)
     
     # Process training data
     print("Processing training data...")
@@ -36,8 +39,10 @@ def process_split(data_dir, split, tile_size, overlap):
     total_tiles = 0
     
     for img_path in img_paths:
-        # Construct corresponding mask path
-        mask_path = img_path.replace('imgs', 'masks').replace('img', 'mask')
+        # Construct corresponding mask path for mask1.png, mask2.png, etc.
+        base = os.path.basename(img_path)
+        mask_base = base.replace('img', 'mask')
+        mask_path = os.path.join(os.path.dirname(img_path).replace('imgs', 'masks'), mask_base)
         
         if not os.path.exists(mask_path):
             print(f"Warning: Mask {mask_path} not found, skipping {img_path}")
@@ -47,37 +52,41 @@ def process_split(data_dir, split, tile_size, overlap):
         
         # Load image and mask
         img = cv2.imread(img_path)
-        # Load mask in color
         mask_color = cv2.imread(mask_path)
+        # Resize mask to match image size if needed
+        if mask_color.shape[:2] != img.shape[:2]:
+            print(f"Resizing mask from {mask_color.shape[:2]} to {img.shape[:2]} for {mask_path}")
+            mask_color = cv2.resize(mask_color, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_NEAREST)
         if img is None or mask_color is None:
             print(f"Warning: Could not load {img_path} or {mask_path}")
             continue
 
-        # Detect exact blue as foreground
-        bin_mask = cv2.inRange(mask_color, np.array([191, 57, 39]), np.array([191, 57, 39]))
+        # Convert all blue (on black) in the mask to white (255) on black (0)
+        hsv = cv2.cvtColor(mask_color, cv2.COLOR_BGR2HSV)
+        lower_blue = np.array([100, 50, 50])  # Lower bound for blue in HSV
+        upper_blue = np.array([140, 255, 255])  # Upper bound for blue in HSV
+        bin_mask = cv2.inRange(hsv, lower_blue, upper_blue)
+        print(f"Unique values in bin_mask for {mask_path}: {np.unique(bin_mask)}")
 
         h, w = img.shape[:2]
         stride = tile_size - overlap
 
         tiles_count = 0
-        debug_tiles_saved = 0
 
-        # Create overlapping tiles
-        for y in range(0, h - tile_size + 1, stride):
-            for x in range(0, w - tile_size + 1, stride):
-                # Extract tile
+        # Find bounding box of the annotated region in the mask
+        ys, xs = np.where(bin_mask > 0)
+        if len(xs) > 0 and len(ys) > 0:
+            x_min, x_max = xs.min(), xs.max()
+            y_min, y_max = ys.min(), ys.max()
+        else:
+            print(f"No annotation found in mask for {img_path}, skipping.")
+            continue
+
+        # Create overlapping tiles only within the bounding box
+        for y in range(y_min, y_max - tile_size + 1, stride):
+            for x in range(x_min, x_max - tile_size + 1, stride):
                 img_tile = img[y:y+tile_size, x:x+tile_size]
                 mask_tile = bin_mask[y:y+tile_size, x:x+tile_size]
-
-                # Debug output for the first 5 tiles
-                if debug_tiles_saved < 5:
-                    print(f"DEBUG: {img_path} tile {tiles_count} unique mask values: {np.unique(mask_tile)}, sum: {mask_tile.sum()}")
-                    base_name = os.path.splitext(os.path.basename(img_path))[0]
-                    tile_name = f"{base_name}_tile_{tiles_count:04d}_debug"
-                    cv2.imwrite(f'{data_dir}/tiles/{split}/imgs/{tile_name}.png', img_tile)
-                    cv2.imwrite(f'{data_dir}/tiles/{split}/masks/{tile_name}.png', mask_tile)
-                    debug_tiles_saved += 1
-
                 # Only save tiles that have some barnacles (positive examples)
                 if mask_tile.sum() > 0:
                     base_name = os.path.splitext(os.path.basename(img_path))[0]

@@ -16,24 +16,38 @@ import os
 from glob import glob
 from tqdm import tqdm
 import sys
+import random
+from torchvision import transforms as T
+from PIL import Image
+import torchvision.transforms.functional as F
+from torchvision.transforms.functional import InterpolationMode
 
 # Add the unet module to path
 sys.path.append('unet')
-from unet_model import UNet
+from Pytorch_UNet.unet.unet_model import UNet
+
+# Define transforms outside the class for reuse
+geo_transform = transforms.Compose([
+    transforms.RandomHorizontalFlip(p=0.5),
+    transforms.RandomVerticalFlip(p=0.5),
+    transforms.RandomRotation(10),
+])
+color_transform = transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1)
 
 class BarnacleDataset(Dataset):
-    def __init__(self, data_dir, transform=None):
+    def __init__(self, data_dir, transform=False):
         self.data_dir = data_dir
         self.transform = transform
         self.img_dir = os.path.join(data_dir, 'imgs')
         self.mask_dir = os.path.join(data_dir, 'masks')
         self.img_files = sorted(glob(os.path.join(self.img_dir, '*.png')))
+        self.mask_files = sorted(glob(os.path.join(self.mask_dir, '*.png')))
         self.pairs = []
+        mask_basenames = {os.path.basename(f): f for f in self.mask_files}
         for img_path in self.img_files:
             base = os.path.basename(img_path)
-            mask_path = os.path.join(self.mask_dir, base)
-            if os.path.exists(mask_path):
-                self.pairs.append((img_path, mask_path))
+            if base in mask_basenames:
+                self.pairs.append((img_path, mask_basenames[base]))
             else:
                 print(f"Warning: No mask for {base}")
 
@@ -47,11 +61,14 @@ class BarnacleDataset(Dataset):
         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         _, mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
         mask = mask / 255.0
-        img = torch.from_numpy(img.transpose(2, 0, 1)).float() / 255.0
-        mask = torch.from_numpy(mask).unsqueeze(0).float()
-        if self.transform:
-            img = self.transform(img)
-            mask = self.transform(mask)
+
+        img_pil = Image.fromarray(img)
+        mask_pil = Image.fromarray((mask * 255).astype(np.uint8))
+
+        img = transforms.ToTensor()(img_pil)
+        mask = transforms.ToTensor()(mask_pil)
+        mask = (mask > 0.5).float()
+
         return img, mask
 
 def main():

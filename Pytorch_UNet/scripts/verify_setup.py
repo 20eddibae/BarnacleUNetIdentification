@@ -29,9 +29,9 @@ def verify_setup():
     
     for dir_path in required_dirs:
         if os.path.exists(dir_path):
-            print(f"  ✅ {dir_path}")
+            print(f"   {dir_path}")
         else:
-            print(f"  ❌ {dir_path} - MISSING")
+            print(f"   {dir_path} - MISSING")
     
     # Check data files
     print("\nData Files:")

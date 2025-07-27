@@ -6,7 +6,6 @@ This project tries to automatically count barnacles in photos taken by National 
 
 ## How it works
 
-The basic idea is:
 1. Find brownish colors that look like barnacles
 2. Clean up the image to remove noise
 3. Separate connected barnacles from each other
@@ -15,7 +14,7 @@ The basic idea is:
 
 ## Running it
 
-First install the stuff you need:
+First install dependencies:
 ```bash
 pip install opencv-python numpy matplotlib
 ```
@@ -39,10 +38,10 @@ The script saves:
 - `opencv_results.png` - side by side comparison
 
 I tested it on:
-- img1.png → opencv_img1result.png (found 1,533 barnacles)
-- img2.png → opencv_img2result.png
-- unseen_img1.png → opencv_unseenimg1result.png
-- unseen_img2.png → opencv_unseenimg2result.png
+- img1.png → opencv_img1results.png (1533 barnacles)
+- img2.png → opencv_img2results.png (3807 barnacles)
+- unseen_img1.png → opencv_unseenimg1results.png (2089 barnacles)
+- unseen_img2.png → opencv_unseenimg2results.png (122 barnacles)
 
 ## What I tried and what happened
 
@@ -60,7 +59,7 @@ The red outlines were too thin and there was too much green clutter. Made the re
 
 ## What works and what doesn't
 
-**Good stuff:**
+**Works:**
 - Finds most barnacles pretty quickly
 - Works on different images
 - Shows numbered results
@@ -74,15 +73,13 @@ The red outlines were too thin and there was too much green clutter. Made the re
 ## Technical details
 
 The main steps are:
-- Color range: (86,80,80) to (192,191,187) for brown barnacles
+- Color range: (86,80,80) to (192,191,187) for brown barnacles (found manually )
 - Morphology: opening → erosion → closing
 - Filtering: area 20-2000 pixels, circularity > 0.03, aspect ratio 0.3-3.0
 
 ## What I learned
 
-Traditional computer vision with OpenCV is fast and you can see exactly what it's doing, but it's not perfect for messy real-world images like this. The barnacles are all different shapes and sizes, and the lighting changes everything. 
-
-A machine learning approach would probably work better, but this gives you a baseline to start from. The key is finding the right balance between detecting everything and avoiding false positives.
+Traditional computer vision with OpenCV is fast and you can see exactly what it's doing, but it's not perfect for messy real-world images like this. The barnacles are all different shapes and sizes, and the lighting changes everything. In particular, there is a lot of noise and overdetection of barnacles as well as insufficient detection of barnacles. However, even though it is not as efficient as the machine learning model, it taught me a lot. Specifically, it  taught me a lot about data cleaning and the power of OpenCV in the process and now I can see how this tool can be used to enhance machine learning processes. 
 
 ## Next steps
 

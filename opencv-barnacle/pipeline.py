@@ -79,7 +79,7 @@ for i, contour in enumerate(filtered_contours):
                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 1)  # White text
 
 # Save results
-cv2.imwrite('opencv_unseenimg2result.png', result)
+cv2.imwrite('opencv_imgresult.png', result)
 cv2.imwrite('opencv_mask.png', cleaned)
 
 # Display results
@@ -100,7 +100,7 @@ plt.title(f'Detected ({len(filtered_contours)} barnacles)')
 plt.axis('off')
 
 plt.tight_layout()
-plt.savefig('opencv_results.png', dpi=150, bbox_inches='tight')
+plt.savefig('opencv_unseenimg2results.png', dpi=150, bbox_inches='tight')
 plt.show()
 
 print(f"\n=== Final Results ===")

@@ -1,6 +1,6 @@
 # Barnacle Segmentation
 
-Two approaches were taken on this problem, one one using OpenCV tools for a more manual, direct segmentation approach while the U-Net segmentation used existing deep learning architectures and adjusted the data creation for training the model. 
+Two approaches were taken on this problem, one using OpenCV tools for a more manual, direct segmentation approach while the U-Net segmentation used existing deep learning architectures and adjusted the data creation for training the model. 
 
 ### General project structure
 

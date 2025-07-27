@@ -10,14 +10,13 @@ This project tackles the problem of automating barnacle counting in coastal tide
   - Randomized the train/validation split to avoid overfitting to a single image.
   - Evaluated the model on both held-out tiles and full-size unseen images.
 
-## Project Structure
+## Project Structure (besides unet all which is code I created)
 
 - `notebooks/barnacle_unet.ipynb` — Main notebook: data loading, training, evaluation, and visualizations.
 - `scripts/create_tiles.py` — Slices large images/masks into smaller, aligned tiles for training.
 - `scripts/random_tile_split.py` — Randomly splits tiles into train/val sets.
 - `unet/` — U-Net model (code taken from original repo here: https://github.com/milesial/Pytorch-UNet)
-- `test_unseen_images.py` — Runs the trained model on full-size unseen images.
-- `opencv-barnacle/pipeline.py` — Classical OpenCV pipeline for comparison.
+- `test_unseen_images.py` — Runs the trained model on full-size unseen images (NOTE: used gpt to generate to test)
 - `data/` — Contains all images, masks, and generated tiles.
 
 ## Visualizations/Evaluation of Results 
@@ -32,7 +31,7 @@ This project tackles the problem of automating barnacle counting in coastal tide
 
 - **Limited Data:** Only two labeled images. Solved by tiling and careful data splitting.
 - **Mask Alignment:** Masks were a different scale and only covered the center. Fixed by resizing and tiling only annotated regions.
-- **Overfitting:** Prevented by mixing tiles from both images in train/val sets.
+- **Overfitting:** The training images were vastly different so I fixed this by mixing tiles from both images in train/val sets.
 - **Classical CV Limitations:** Color thresholding alone was not robust enough for barnacle detection.
 
 ## How to Run
@@ -44,7 +43,7 @@ This project tackles the problem of automating barnacle counting in coastal tide
 
 ## Reflections
 
-This project demonstrates a practical approach to a hard segmentation problem with minimal data. The U-Net model, while not perfect, shows promise and outperforms basic OpenCV methods. Key learnings included robust data preprocessing, careful validation, and the importance of visual inspection at every step.
+This project demonstrates a practical approach to a hard segmentation problem with minimal data. The U-Net model, while not perfect, shows promise and outperforms basic OpenCV methods. This was a really interesting project to apply my theoretical understanding of UNet segmentation that I know from medical imaging into this real life context. Through this approach I learned a lot about data preprocessing, careful validation, and the importance of visual inspection at every step.
 
 
 ### Citations

@@ -2,6 +2,8 @@ import os
 import random
 import shutil
 
+#Script to split the cells into train/val sets from the two images 
+
 # Directories
 all_img_dir = 'Pytorch_UNet/data/tiles/all/imgs'
 all_mask_dir = 'Pytorch_UNet/data/tiles/all/masks'

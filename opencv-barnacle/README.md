@@ -38,10 +38,10 @@ The script saves:
 - `opencv_results.png` - side by side comparison
 
 I tested it on:
-- img1.png → opencv_img1results.png (1533 barnacles)
-- img2.png → opencv_img2results.png (3807 barnacles)
-- unseen_img1.png → opencv_unseenimg1results.png (2089 barnacles)
-- unseen_img2.png → opencv_unseenimg2results.png (122 barnacles)
+- img1.png - opencv_img1results.png (1533 barnacles)
+- img2.png - opencv_img2results.png (3807 barnacles)
+- unseen_img1.png - opencv_unseenimg1results.png (2089 barnacles)
+- unseen_img2.png →-opencv_unseenimg2results.png (122 barnacles)
 
 ## What I tried and what happened
 
@@ -63,23 +63,25 @@ The red outlines were too thin and there was too much green clutter. Made the re
 - Finds most barnacles pretty quickly
 - Works on different images
 - Shows numbered results
+- Faster than deep learning methods (like the UNet approach)
 
 **Problems:**
 - Doesn't catch every single barnacle (especially in dense clusters)
 - Still picks up some noise from edges and reflections
 - Relies on barnacles being roughly oval-shaped
 - Might not work as well with different lighting
+- As you can see in the images, not perfect but definitely faster than deep learning 
 
 ## Technical details
 
 The main steps are:
 - Color range: (86,80,80) to (192,191,187) for brown barnacles (found manually )
-- Morphology: opening → erosion → closing
-- Filtering: area 20-2000 pixels, circularity > 0.03, aspect ratio 0.3-3.0
+- Morphology steps: opening -> erosion -. closing
+- Filtering: area 20-2000 pixels, circularity > 0.03, aspect ratio 0.3-3.0 (mostly found through tweaking the values)
 
 ## What I learned
 
-Traditional computer vision with OpenCV is fast and you can see exactly what it's doing, but it's not perfect for messy real-world images like this. The barnacles are all different shapes and sizes, and the lighting changes everything. In particular, there is a lot of noise and overdetection of barnacles as well as insufficient detection of barnacles. However, even though it is not as efficient as the machine learning model, it taught me a lot. Specifically, it  taught me a lot about data cleaning and the power of OpenCV in the process and now I can see how this tool can be used to enhance machine learning processes. 
+Traditional computer vision with OpenCV is fast and you can see exactly what it's doing, but it's not perfect for messy real-world images like this. The barnacles are all different shapes and sizes, and the lighting changes everything. Especially between the two original images, the barnacle colors and the lighting in general was completely different. In particular, there is a lot of noise and overdetection of barnacles as well as insufficient detection of barnacles. However, even though it is not as efficient as the machine learning model, it taught me a lot. Specifically, it  taught me a lot about data cleaning and the power of OpenCV in the process and now I can see how this tool can be used to enhance machine learning processes. 
 
 ## Next steps
 

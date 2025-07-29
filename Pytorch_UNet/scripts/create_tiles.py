@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 from glob import glob
 
+# Function to create tiles from the full images without augmentation or overlap
 def create_tiles(data_dir='data', tile_size=128, overlap=32):
     # Create output directories for all tiles
     all_img_dir = f'{data_dir}/tiles/all/imgs'
@@ -22,8 +23,9 @@ def create_tiles(data_dir='data', tile_size=128, overlap=32):
     total_tiles = 0
     for img_path in img_paths:
         base = os.path.basename(img_path)
-        # Construct corresponding mask path: replace 'img' with 'mask' in filename
+        # Construct corresponding mask path
         mask_base = base.replace('img', 'mask')
+        # Identify train and val images
         if 'train' in img_path:
             mask_path = os.path.join(data_dir, 'masks', 'train', mask_base)
         elif 'val' in img_path:
@@ -31,23 +33,28 @@ def create_tiles(data_dir='data', tile_size=128, overlap=32):
         else:
             print(f"Warning: Could not determine split for {img_path}")
             continue
+        # Skip if mask not found 
         if not os.path.exists(mask_path):
             print(f"Warning: Mask {mask_path} not found, skipping {img_path}")
             continue
         print(f"  Processing {img_path}...")
         img = cv2.imread(img_path)
         mask_color = cv2.imread(mask_path)
+        # ensure mask and image have the same dimensions or else resize 
         if mask_color.shape[:2] != img.shape[:2]:
             print(f"Resizing mask from {mask_color.shape[:2]} to {img.shape[:2]} for {mask_path}")
             mask_color = cv2.resize(mask_color, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_NEAREST)
+        # Check image loading
         if img is None or mask_color is None:
             print(f"Warning: Could not load {img_path} or {mask_path}")
             continue
+        # Converting to HSV and then binarizing the mask in this manual 
         hsv = cv2.cvtColor(mask_color, cv2.COLOR_BGR2HSV)
         lower_blue = np.array([100, 50, 50])
         upper_blue = np.array([140, 255, 255])
         bin_mask = cv2.inRange(hsv, lower_blue, upper_blue)
         h, w = img.shape[:2]
+        # Get the sliding window stride for the tile size 
         stride = tile_size - overlap
         tiles_count = 0
         ys, xs = np.where(bin_mask > 0)
@@ -57,10 +64,12 @@ def create_tiles(data_dir='data', tile_size=128, overlap=32):
         else:
             print(f"No annotation found in mask for {img_path}, skipping.")
             continue
+        # Get the slide to go across annotated regions 
         for y in range(y_min, y_max - tile_size + 1, stride):
             for x in range(x_min, x_max - tile_size + 1, stride):
                 img_tile = img[y:y+tile_size, x:x+tile_size]
                 mask_tile = bin_mask[y:y+tile_size, x:x+tile_size]
+                # Only saves if the tiles have barnacles
                 if mask_tile.sum() > 0:
                     base_name = os.path.splitext(os.path.basename(img_path))[0]
                     tile_name = f"{base_name}_tile_{tiles_count:04d}.png"
@@ -73,9 +82,11 @@ def create_tiles(data_dir='data', tile_size=128, overlap=32):
 
 if __name__ == "__main__":
     import argparse
+    # Parsing for parameters
     parser = argparse.ArgumentParser(description='Create all tiled patches from full images')
     parser.add_argument('--data_dir', default='data', help='Data directory')
     parser.add_argument('--tile_size', type=int, default=128, help='Size of tiles')
     parser.add_argument('--overlap', type=int, default=32, help='Overlap between tiles')
     args = parser.parse_args()
+    # Executes the functions
     create_tiles(args.data_dir, args.tile_size, args.overlap) 

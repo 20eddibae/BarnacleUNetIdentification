@@ -41,11 +41,12 @@ print(f"After morphology: {cleaned_pixels:,} pixels ({cleaned_pixels/total_pixel
 contours, _ = cv2.findContours(cleaned, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 print(f"Found {len(contours)} potential barnacles")
 
-# Filter contours - better balance for middle vs edge barnacles
-min_area = 20  # Slightly higher minimum to reduce edge noise
-max_area = 2000  # Lower maximum to avoid large connected regions
+# Filter contours 
+min_area = 20  # High minimum to reduce noise 
+max_area = 2000  # Low maximum to not have large connected regions
 filtered_contours = []
 
+# Function to optimize the filtering through oval detections
 for contour in contours:
     area = cv2.contourArea(contour)
     if min_area < area < max_area:
@@ -55,7 +56,7 @@ for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
             aspect_ratio = float(w) / h if h > 0 else 0
             
-            # Better filtering: prefer circular/oval shapes, avoid very elongated
+            # Better filtering by preferring circular/oval shapes, avoiding very elongated
             if (circularity > 0.03 and 0.3 < aspect_ratio < 3.0) or (area > 100 and circularity > 0.02):
                 filtered_contours.append(contour)
 

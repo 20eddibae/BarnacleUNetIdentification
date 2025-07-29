@@ -39,12 +39,12 @@ def extract_patches(data_dir='data', min_area=20, patch_size=64):
         # Binarize mask
         _, bin_mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
         
-        # Find connected components (barnacles)
+        # Find connected components
         num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(bin_mask)
         
-        # Extract positive patches (barnacles)
+        # Extract positive patches
         positives_count = 0
-        for i in range(1, num_labels):  # Skip background (label 0)
+        for i in range(1, num_labels):  # Skip background 
             x, y, w, h, area = stats[i]
             
             if area < min_area:
@@ -66,7 +66,7 @@ def extract_patches(data_dir='data', min_area=20, patch_size=64):
         
         total_positives += positives_count
         
-        # Extract negative patches (background regions)
+        # Extract negative patches 
         negatives_count = 0
         h, w = mask.shape
         
@@ -81,7 +81,7 @@ def extract_patches(data_dir='data', min_area=20, patch_size=64):
             x0 = np.random.randint(0, w - patch_size)
             y0 = np.random.randint(0, h - patch_size)
             
-            # Check if this region is mostly background (at least 50% background pixels)
+            # Check if this region is mostly background 
             region = background_mask[y0:y0+patch_size, x0:x0+patch_size]
             if region.sum() / region.size > 0.5:
                 patch = img[y0:y0+patch_size, x0:x0+patch_size]
